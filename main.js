@@ -1,20 +1,33 @@
 const gridSize = 15;
-const grid = document.getElementById("grid");
-const totalCells = gridSize * gridSize;
+const gridEl = document.getElementById("grid");
 let zombie = { x: 0, y: 0 }; // Zombie position
 let humans = []; // Array of human positions
 let obstacles = []; // Array of obstacle positions
 let score = 0;
+let level = 1;
+let intervalId = null;
+let timeLeft = 30;
+let timerInterval = null;
+let humanMoveInterval = null;
 
 const startBtn = document.getElementById("startBtn");
 const nextBtn = document.getElementById("nextBtn");
 
-// Buat grid 15x15
-for (let i = 0; i < totalCells; i++) {
-  const cell = document.createElement("div");
-  cell.classList.add("cell");
-  cell.dataset.index = i;
-  grid.appendChild(cell);
+function rand(min = 0, max = gridSize - 1) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function index(x, y) {
+  return y * gridSize + x;
+}
+
+function createGrid() {
+  gridEl.innerHTML = "";
+  for (let i = 0; i < gridSize * gridSize; i++) {
+    const div = document.createElement("div");
+    div.classList.add("cell");
+    gridEl.appendChild(div);
+  }
 }
 
 // Update grid display
@@ -87,6 +100,22 @@ function bfsDistanceMap(startX, startY) {
     }
   }
   return distance;
+}
+
+function moveHumans() {
+  humans = humans.map(human => {
+    const path = bfs(human.x, human.y, zombie.x, zombie.y);
+    if (path.length > 1) {
+      // Gerak menjauh dari zombie
+      const next = path[path.length - 2]; 
+      if (!obstacles.some(o => o.x === next.x && o.y === next.y)) {
+        return { x: next.x, y: next.y };
+      }
+    }
+    return human;
+  });
+
+  updateGrid();
 }
 
 function bfs(sx, sy, tx, ty) {
@@ -209,26 +238,39 @@ nextBtn.addEventListener("click", () => {
 });
 
 function checkCollision() {
-  const targetIndex = humans.findIndex(h => h.x === zombie.x && h.y === zombie.y);
+  let eatenThisTick = false;
+  const newHumans = [];
 
-  if (targetIndex !== -1) {
-    const h = humans[targetIndex];
-    const cell = gridEl.children[index(h.x, h.y)];
-    cell.classList.add("eating");
+  humans.forEach(h => {
+    if (h.x === zombie.x && h.y === zombie.y) {
+      const cell = gridEl.children[index(h.x, h.y)];
+      cell.classList.add("eating");
+      eatenThisTick = true;
 
-    // Hilangkan hanya animasi dulu, tunda penghapusan dari array dan updateGrid
-    setTimeout(() => {
-      humans.splice(targetIndex, 1); // hapus dari array
-      updateGrid(); // baru update tampilan
+      setTimeout(() => {
+        cell.classList.remove("human", "eating");
+        score++;
+        document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
+        
+        // Hapus manusia dari array baru setelah animasi
+        humans = humans.filter(hh => !(hh.x === h.x && hh.y === h.y));
 
-      score++;
-      document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
+        updateGrid();
 
-      if (humans.length === 0) {
-        clearInterval(intervalId);
-        nextBtn.style.display = "inline";
-      }
-    }, 300);
+        // Cek habisnya manusia baru setelah update
+        if (humans.length === 0) {
+          clearInterval(intervalId);
+          nextBtn.style.display = "inline";
+        }
+      }, 300);
+    } else {
+      newHumans.push(h);
+    }
+  });
+
+  // Jangan langsung update humans, tunggu sampai timeout
+  if (!eatenThisTick) {
+    humans = newHumans;
   }
 }
 
