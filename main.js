@@ -208,6 +208,69 @@ function nextLevel() {
 startBtn.onclick = startGame;
 nextBtn.onclick = nextLevel;
 
+function startTimer() {
+  clearInterval(timerInterval); // reset jika sebelumnya ada
+  timeLeft = 30; // bisa disesuaikan per level
+  document.getElementById("timer").textContent = `⏳ Timer: ${timeLeft}`;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById("timer").textContent = `⏳ Timer: ${timeLeft}`;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      clearInterval(intervalId); // hentikan gerak
+      alert("⛔ Waktu habis! Game Over.");
+    }
+  }, 1000);
+}
+
+function startLevel() {
+  // Reset zombie & manusia
+  zombie = { x: 0, y: 0 };
+  humans = [];
+  for (let i = 0; i < level; i++) {
+    let hx = Math.floor(Math.random() * gridSize);
+    let hy = Math.floor(Math.random() * gridSize);
+    humans.push({ x: hx, y: hy });
+  }
+
+  
+  // Obstacle acak
+  obstacles = [];
+  for (let i = 0; i < level + 3; i++) {
+    let ox = Math.floor(Math.random() * gridSize);
+    let oy = Math.floor(Math.random() * gridSize);
+    if (!(ox === zombie.x && oy === zombie.y)) {
+      obstacles.push({ x: ox, y: oy });
+    }
+  }
+
+  // Update grid dan mulai timer & gerak
+  updateGrid();
+  startTimer();
+
+  // Mulai ulang gerakan zombie otomatis
+  clearInterval(intervalId);
+  //intervalId = humanSpeed = Math.max(400, 1500 - (level - 1) * 100); // Semakin tinggi level, semakin cepat
+  const humanSpeed = 900; // tetap 0.5 detik per langkah
+  clearInterval(humanMoveInterval);
+  humanMoveInterval = setInterval(moveHumans, humanSpeed);
+  setInterval(step, zombieSpeed);
+
+  // Sembunyikan tombol next/start
+  nextBtn.style.display = "none";
+  startBtn.style.display = "none";
+
+  clearInterval(humanMoveInterval);
+  humanMoveInterval = setInterval(moveHumans, 500); // manusia gerak tiap 0.5 detik
+
+  humans = [];
+for (let i = 0; i < level; i++) {
+  let hx = Math.floor(Math.random() * gridSize);
+  let hy = Math.floor(Math.random() * gridSize);
+  humans.push({ x: hx, y: hy });
+}
+}
+
 function bfs(sx, sy, tx, ty) {
   let queue = [[sx, sy]];
   let visited = {};
