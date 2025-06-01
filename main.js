@@ -74,3 +74,44 @@ document.addEventListener("keydown", (e) => {
     zombie.y = newY;
   }
 });
+
+document.addEventListener("keydown", (e) => {
+  let dx = 0;
+  let dy = 0;
+
+  if (e.key === "w" || e.key === "ArrowUp") dy = -1;
+  else if (e.key === "s" || e.key === "ArrowDown") dy = 1;
+  else if (e.key === "a" || e.key === "ArrowLeft") dx = -1;
+  else if (e.key === "d" || e.key === "ArrowRight") dx = 1;
+  else return;
+
+  const newX = zombie.x + dx;
+  const newY = zombie.y + dy;
+
+  if (
+    newX >= 0 && newX < gridSize &&
+    newY >= 0 && newY < gridSize
+  ) {
+    // Cek apakah posisi baru adalah manusia
+    const newIndex = coordToIndex(newX, newY);
+    const cell = grid.children[newIndex];
+
+    if (cell.classList.contains("human")) {
+      // Hapus manusia
+      cell.classList.remove("human");
+      cell.classList.add("eating");
+
+      // Hapus dari array humans
+      humans = humans.filter(h => !(h.x === newX && h.y === newY));
+
+      // Hilangkan animasi setelah sedikit waktu
+      setTimeout(() => {
+        cell.classList.remove("eating");
+      }, 200);
+    }
+
+    updateZombiePosition(zombie.x, zombie.y, newX, newY);
+    zombie.x = newX;
+    zombie.y = newY;
+  }
+});
