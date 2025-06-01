@@ -106,38 +106,13 @@ function updateZombiePosition(oldX, oldY, newX, newY) {
 
 // Event keydown untuk gerakan
 document.addEventListener("keydown", (e) => {
-  let dx = 0;
-  let dy = 0;
-
-  if (e.key === "w" || e.key === "ArrowUp") dy = -1;
-  else if (e.key === "s" || e.key === "ArrowDown") dy = 1;
-  else if (e.key === "a" || e.key === "ArrowLeft") dx = -1;
-  else if (e.key === "d" || e.key === "ArrowRight") dx = 1;
-  else return;
-
-  const newX = zombie.x + dx;
-  const newY = zombie.y + dy;
-
-  if (
-    newX >= 0 && newX < gridSize &&
-    newY >= 0 && newY < gridSize
-  ) {
-    updateZombiePosition(zombie.x, zombie.y, newX, newY);
-    zombie.x = newX;
-    zombie.y = newY;
-  }
-});
-
-document.addEventListener("keydown", (e) => {
   let dx = 0, dy = 0;
   if (e.key === "w" || e.key === "ArrowUp") dy = -1;
   else if (e.key === "s" || e.key === "ArrowDown") dy = 1;
   else if (e.key === "a" || e.key === "ArrowLeft") dx = -1;
   else if (e.key === "d" || e.key === "ArrowRight") dx = 1;
 
-  const nx = zombie.x + dx;
-  const ny = zombie.y + dy;
-
+  const nx = zombie.x + dx, ny = zombie.y + dy;
   if (
     nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize &&
     !obstacles.some(o => o.x === nx && o.y === ny)
@@ -147,6 +122,18 @@ document.addEventListener("keydown", (e) => {
     checkCollision();
     updateGrid();
   }
+});
+
+startBtn.addEventListener("click", () => {
+  level = 1;
+  score = 0;
+  document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
+  startLevel();
+});
+
+nextBtn.addEventListener("click", () => {
+  level++;
+  startLevel();
 });
 
 function checkCollision() {
