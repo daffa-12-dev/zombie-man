@@ -104,15 +104,26 @@ function bfsDistanceMap(startX, startY) {
 
 function moveHumans() {
   humans = humans.map(human => {
-    const path = bfs(human.x, human.y, zombie.x, zombie.y);
-    if (path.length > 1) {
-      // Gerak menjauh dari zombie
-      const next = path[path.length - 2]; 
-      if (!obstacles.some(o => o.x === next.x && o.y === next.y)) {
-        return { x: next.x, y: next.y };
-      }
-    }
-    return human;
+    const directions = [
+      { x: human.x + 1, y: human.y },
+      { x: human.x - 1, y: human.y },
+      { x: human.x, y: human.y + 1 },
+      { x: human.x, y: human.y - 1 }
+    ];
+
+    // Tambahkan posisi sekarang sebagai pilihan default
+    directions.push({ x: human.x, y: human.y });
+
+    // Pilih posisi yang paling jauh dari zombie dan tidak ada obstacle
+    let safest = directions
+      .filter(d => isValidCell(d.x, d.y))
+      .sort((a, b) => {
+        const da = distance(a.x, a.y, zombie.x, zombie.y);
+        const db = distance(b.x, b.y, zombie.x, zombie.y);
+        return db - da; // urut dari paling jauh
+      })[0];
+
+    return safest;
   });
 
   updateGrid();
@@ -233,7 +244,6 @@ function startLevel() {
     humans.push({ x: hx, y: hy });
   }
 
-  
   // Obstacle acak
   obstacles = [];
   for (let i = 0; i < level + 3; i++) {
@@ -264,12 +274,24 @@ function startLevel() {
   humanMoveInterval = setInterval(moveHumans, 500); // manusia gerak tiap 0.5 detik
 
   humans = [];
-for (let i = 0; i < level; i++) {
+  for (let i = 0; i < level; i++) {
   let hx = Math.floor(Math.random() * gridSize);
   let hy = Math.floor(Math.random() * gridSize);
   humans.push({ x: hx, y: hy });
 }
 }
+
+startBtn.addEventListener("click", () => {
+  level = 1;
+  score = 0;
+  document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
+  startLevel();
+});
+
+nextBtn.addEventListener("click", () => {
+  level++;
+  startLevel();
+});
 
 function bfs(sx, sy, tx, ty) {
   let queue = [[sx, sy]];
@@ -317,13 +339,46 @@ function bfs(sx, sy, tx, ty) {
   return path.reverse();
 }
 
-// Fungsi bantu konversi index ke x,y
-function indexToCoord(index) {
-  return { x: index % gridSize, y: Math.floor(index / gridSize) };
+function isValidCell(x, y) {
+  return (
+    x >= 0 &&
+    y >= 0 &&
+    x < gridSize &&
+    y < gridSize &&
+    !obstacles.some(o => o.x === x && o.y === y)
+  );
 }
 
-function coordToIndex(x, y) {
-  return y * gridSize + x;
+function distance(x1, y1, x2, y2) {
+  return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+function step() {
+  // Logic pergerakan zombie satu langkah
+  if (path.length > 0) {
+    const next = path.shift();
+    zombie.x = next.x;
+    zombie.y = next.y;
+
+    // Cek apakah zombie bertabrakan dengan manusia
+    humans = humans.filter(human => {
+      const isCaught = human.x === zombie.x && human.y === zombie.y;
+      if (isCaught) {
+        score += 1;
+        showEatAnimation(zombie.x, zombie.y); // animasi makan
+      }
+      return !isCaught; // Hapus manusia yang tertangkap
+    });
+
+    updateGrid();
+
+    // Jika semua manusia sudah habis, tampilkan next level
+    if (humans.length === 0) {
+      clearInterval(zombieMoveInterval);
+      clearInterval(humanMoveInterval);
+      document.getElementById("nextLevelBtn").style.display = "block";
+    }
+  }
 }
 
 // Tambahkan zombie
