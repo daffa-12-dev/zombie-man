@@ -63,6 +63,78 @@ function spawnHumans(count) {
   }
 }
 
+function bfsDistanceMap(startX, startY) {
+  const visited = Array(gridSize).fill().map(() => Array(gridSize).fill(false));
+  const distance = Array(gridSize).fill().map(() => Array(gridSize).fill(Infinity));
+  const queue = [[startX, startY]];
+  visited[startY][startX] = true;
+  distance[startY][startX] = 0;
+
+  while (queue.length > 0) {
+    const [x, y] = queue.shift();
+    const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    for (const [dx, dy] of dirs) {
+      const nx = x + dx, ny = y + dy;
+      if (
+        nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize &&
+        !visited[ny][nx] &&
+        !obstacles.some(o => o.x === nx && o.y === ny)
+      ) {
+        visited[ny][nx] = true;
+        distance[ny][nx] = distance[y][x] + 1;
+        queue.push([nx, ny]);
+      }
+    }
+  }
+  return distance;
+}
+
+function bfs(sx, sy, tx, ty) {
+  let queue = [[sx, sy]];
+  let visited = {};
+  let parent = {};
+
+  visited[`${sx},${sy}`] = true;
+
+  while (queue.length > 0) {
+    let [x, y] = queue.shift();
+
+    if (x === tx && y === ty) break;
+
+    let neighbors = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1]
+    ];
+
+    for (let [nx, ny] of neighbors) {
+      const key = `${nx},${ny}`;
+      if (
+        nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize &&
+        !visited[key] &&
+        !obstacles.some(o => o.x === nx && o.y === ny)
+      ) {
+        visited[key] = true;
+        parent[key] = [x, y];
+        queue.push([nx, ny]);
+      }
+    }
+  }
+
+  // Bangun path menjauh dari zombie
+  let path = [];
+  let current = `${tx},${ty}`;
+  while (current !== `${sx},${sy}`) {
+    if (!parent[current]) break;
+    const [px, py] = parent[current];
+    path.push({ x: parseInt(current.split(',')[0]), y: parseInt(current.split(',')[1]) });
+    current = `${px},${py}`;
+  }
+
+  return path.reverse();
+}
+
 // Fungsi bantu konversi index ke x,y
 function indexToCoord(index) {
   return { x: index % gridSize, y: Math.floor(index / gridSize) };
