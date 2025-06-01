@@ -24,11 +24,3 @@ body {
   background-color: #2f3b4b;
   border-radius: 4px;
 }
-
-.zombie {
-  background-color: red;
-}
-
-.human {
-  background-color: blue;
-}
