@@ -192,19 +192,6 @@ function gameLoop() {
   updateGrid();
 }
 
-function startGame() {
-  score = 0;
-  level = 1;
-  zombie = { x: 0, y: 0 };
-  spawnObstacles(5);
-  spawnHumans(3);
-  createGrid();
-  updateGrid();
-  clearInterval(intervalId);
-  intervalId = setInterval(gameLoop, 1000);
-  nextBtn.style.display = "none";
-}
-
 function nextLevel() {
   zombie = { x: 0, y: 0 };
   level++;
@@ -216,7 +203,7 @@ function nextLevel() {
   nextBtn.style.display = "none";
 }
 
-startBtn.onclick = startGame;
+
 nextBtn.onclick = nextLevel;
 
 function startTimer() {
@@ -272,13 +259,6 @@ function startLevel() {
 
   clearInterval(humanMoveInterval);
   humanMoveInterval = setInterval(moveHumans, 500); // manusia gerak tiap 0.5 detik
-
-  humans = [];
-  for (let i = 0; i < level; i++) {
-  let hx = Math.floor(Math.random() * gridSize);
-  let hy = Math.floor(Math.random() * gridSize);
-  humans.push({ x: hx, y: hy });
-}
 }
 
 startBtn.addEventListener("click", () => {
@@ -290,6 +270,7 @@ startBtn.addEventListener("click", () => {
 
 nextBtn.addEventListener("click", () => {
   level++;
+  document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
   startLevel();
 });
 
@@ -390,3 +371,54 @@ function showEatAnimation(x, y) {
     }, 300);
   }
 }
+
+window.onload = () => {
+  createGrid();
+};
+
+// Tambahkan fungsi yang belum ada
+function isValidCell(x, y) {
+  return (
+    x >= 0 && y >= 0 && 
+    x < gridSize && y < gridSize &&
+    !obstacles.some(o => o.x === x && o.y === y)
+  );
+}
+
+function distance(x1, y1, x2, y2) {
+  return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+// Inisialisasi variabel yang belum ada
+let zombieSpeed = 500;
+let path = [];
+
+// Pindahkan startLevel ke atas sebelum event listener
+function startLevel() {
+  // Reset zombie & manusia
+  zombie = { x: 0, y: 0 };
+  humans = [];
+  obstacles = [];
+  
+  spawnObstacles(Math.min(level + 2, 15));
+  spawnHumans(level * 2);
+  
+  // Update UI
+  document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
+  updateGrid();
+  
+  // Mulai timer dan game loop
+  startTimer();
+  clearInterval(intervalId);
+  intervalId = setInterval(gameLoop, 1000);
+  
+
+}
+
+// Panggil createGrid saat halaman dimuat
+window.onload = () => {
+  createGrid();
+  // Tampilkan tombol start saja
+  startBtn.style.display = "inline";
+  nextBtn.style.display = "none";
+};

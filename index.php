@@ -10,8 +10,8 @@
   <div id="timer">⏳ Timer: 30</div>
   <div id="score">Skor: 0 | Level: 1</div>
   <button id="startBtn">Start Game</button>
-  <button id="nextBtn" style="display: none;">Next Level</button>
+  <button id="nextBtn" style="display:none;">Next Level</button>
   <div id="grid"></div>
-  <script src="script.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
