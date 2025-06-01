@@ -381,68 +381,12 @@ function step() {
   }
 }
 
-// Tambahkan zombie
-let zombie = {
-  x: 0,
-  y: 0
-};
-let zombieIndex = coordToIndex(zombie.x, zombie.y);
-grid.children[zombieIndex].classList.add("zombie");
-
-// Tambahkan manusia
-let humanCount = 5;
-let humans = [];
-
-while (humans.length < humanCount) {
-  let x = Math.floor(Math.random() * gridSize);
-  let y = Math.floor(Math.random() * gridSize);
-  if (x === zombie.x && y === zombie.y) continue;
-
-  let idx = coordToIndex(x, y);
-  if (!grid.children[idx].classList.contains("human")) {
-    grid.children[idx].classList.add("human");
-    humans.push({ x, y });
+function showEatAnimation(x, y) {
+  const cell = document.getElementById(`cell-${x}-${y}`);
+  if (cell) {
+    cell.classList.add("eating");
+    setTimeout(() => {
+      cell.classList.remove("eating");
+    }, 300);
   }
 }
-
-// Fungsi update posisi zombie di grid
-function updateZombiePosition(oldX, oldY, newX, newY) {
-  let oldIndex = coordToIndex(oldX, oldY);
-  let newIndex = coordToIndex(newX, newY);
-  grid.children[oldIndex].classList.remove("zombie");
-  grid.children[newIndex].classList.add("zombie");
-}
-
-startBtn.addEventListener("click", () => {
-  level = 1;
-  score = 0;
-  document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
-  startLevel();
-});
-
-nextBtn.addEventListener("click", () => {
-  level++;
-  startLevel();
-});
-
-
-document.addEventListener("keydown", (e) => {
-  let dx = 0, dy = 0;
-  if (e.key === "w" || e.key === "ArrowUp") dy = -1;
-  else if (e.key === "s" || e.key === "ArrowDown") dy = 1;
-  else if (e.key === "a" || e.key === "ArrowLeft") dx = -1;
-  else if (e.key === "d" || e.key === "ArrowRight") dx = 1;
-
-  const nx = zombie.x + dx;
-  const ny = zombie.y + dy;
-
-  if (
-    nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize &&
-    !obstacles.some(o => o.x === nx && o.y === ny)
-  ) {
-    zombie.x = nx;
-    zombie.y = ny;
-    checkCollision(); // cek apakah zombie tabrak manusia
-    updateGrid();     // update tampilan
-  }
-});

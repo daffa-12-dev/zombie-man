@@ -38,6 +38,7 @@ body {
 .eating {
   animation: eatFlash 0.2s ease-in-out;
   background-color: orange !important;
+  box-shadow: 0 0 10px #ffcc00aa !important;
 }
 
 @keyframes eatFlash {
@@ -67,4 +68,19 @@ button {
 button:hover {
   background-color: #1565c0;
   transform: scale(1.05);
+}
+
+#timer {
+  font-size: 20px;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff;
+}
+
+#score {
+  font-size: 22px;
+  color: #90caff;
+  margin-top: 10px;
+  text-shadow: 0 0 5px #90caff88;
 }
