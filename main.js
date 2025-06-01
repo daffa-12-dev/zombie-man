@@ -118,6 +118,96 @@ function moveHumans() {
   updateGrid();
 }
 
+function checkCollision() {
+  let eatenThisTick = false;
+  const newHumans = [];
+
+  humans.forEach(h => {
+    if (h.x === zombie.x && h.y === zombie.y) {
+      const cell = gridEl.children[index(h.x, h.y)];
+      cell.classList.add("eating");
+      eatenThisTick = true;
+
+      setTimeout(() => {
+        cell.classList.remove("human", "eating");
+        score++;
+        document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
+        
+        // Hapus manusia dari array baru setelah animasi
+        humans = humans.filter(hh => !(hh.x === h.x && hh.y === h.y));
+
+        updateGrid();
+
+        // Cek habisnya manusia baru setelah update
+        if (humans.length === 0) {
+          clearInterval(intervalId);
+          nextBtn.style.display = "inline";
+        }
+      }, 300);
+    } else {
+      newHumans.push(h);
+    }
+  });
+
+  // Jangan langsung update humans, tunggu sampai timeout
+  if (!eatenThisTick) {
+    humans = newHumans;
+  }
+}
+
+// Event keydown untuk gerakan
+document.addEventListener("keydown", (e) => {
+  let dx = 0, dy = 0;
+  if (e.key === "w" || e.key === "ArrowUp") dy = -1;
+  else if (e.key === "s" || e.key === "ArrowDown") dy = 1;
+  else if (e.key === "a" || e.key === "ArrowLeft") dx = -1;
+  else if (e.key === "d" || e.key === "ArrowRight") dx = 1;
+
+  const nx = zombie.x + dx, ny = zombie.y + dy;
+  if (
+    nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize &&
+    !obstacles.some(o => o.x === nx && o.y === ny)
+  ) {
+    zombie.x = nx;
+    zombie.y = ny;
+    checkCollision();
+    updateGrid();
+  }
+});
+
+function gameLoop() {
+  moveHumans();
+  checkCollision();
+  updateGrid();
+}
+
+function startGame() {
+  score = 0;
+  level = 1;
+  zombie = { x: 0, y: 0 };
+  spawnObstacles(5);
+  spawnHumans(3);
+  createGrid();
+  updateGrid();
+  clearInterval(intervalId);
+  intervalId = setInterval(gameLoop, 1000);
+  nextBtn.style.display = "none";
+}
+
+function nextLevel() {
+  zombie = { x: 0, y: 0 };
+  level++;
+  spawnObstacles(Math.min(level + 2, 15));
+  spawnHumans(level * 2);
+  updateGrid();
+  clearInterval(intervalId);
+  intervalId = setInterval(gameLoop, 1000);
+  nextBtn.style.display = "none";
+}
+
+startBtn.onclick = startGame;
+nextBtn.onclick = nextLevel;
+
 function bfs(sx, sy, tx, ty) {
   let queue = [[sx, sy]];
   let visited = {};
@@ -205,26 +295,6 @@ function updateZombiePosition(oldX, oldY, newX, newY) {
   grid.children[newIndex].classList.add("zombie");
 }
 
-// Event keydown untuk gerakan
-document.addEventListener("keydown", (e) => {
-  let dx = 0, dy = 0;
-  if (e.key === "w" || e.key === "ArrowUp") dy = -1;
-  else if (e.key === "s" || e.key === "ArrowDown") dy = 1;
-  else if (e.key === "a" || e.key === "ArrowLeft") dx = -1;
-  else if (e.key === "d" || e.key === "ArrowRight") dx = 1;
-
-  const nx = zombie.x + dx, ny = zombie.y + dy;
-  if (
-    nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize &&
-    !obstacles.some(o => o.x === nx && o.y === ny)
-  ) {
-    zombie.x = nx;
-    zombie.y = ny;
-    checkCollision();
-    updateGrid();
-  }
-});
-
 startBtn.addEventListener("click", () => {
   level = 1;
   score = 0;
@@ -236,43 +306,6 @@ nextBtn.addEventListener("click", () => {
   level++;
   startLevel();
 });
-
-function checkCollision() {
-  let eatenThisTick = false;
-  const newHumans = [];
-
-  humans.forEach(h => {
-    if (h.x === zombie.x && h.y === zombie.y) {
-      const cell = gridEl.children[index(h.x, h.y)];
-      cell.classList.add("eating");
-      eatenThisTick = true;
-
-      setTimeout(() => {
-        cell.classList.remove("human", "eating");
-        score++;
-        document.getElementById("score").textContent = `Skor: ${score} | Level: ${level}`;
-        
-        // Hapus manusia dari array baru setelah animasi
-        humans = humans.filter(hh => !(hh.x === h.x && hh.y === h.y));
-
-        updateGrid();
-
-        // Cek habisnya manusia baru setelah update
-        if (humans.length === 0) {
-          clearInterval(intervalId);
-          nextBtn.style.display = "inline";
-        }
-      }, 300);
-    } else {
-      newHumans.push(h);
-    }
-  });
-
-  // Jangan langsung update humans, tunggu sampai timeout
-  if (!eatenThisTick) {
-    humans = newHumans;
-  }
-}
 
 
 document.addEventListener("keydown", (e) => {
